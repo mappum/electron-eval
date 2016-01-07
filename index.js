@@ -28,7 +28,7 @@ class Daemon extends EventEmitter {
     this.queue = []
     this.ready = false
     this.stdout.once('data', () => {
-      this.stdout.on('data', message => this.emit(message.id, message))
+      this.stdout.on('data', message => this.emit(message[0], message[1]))
       this.ready = true
       this.queue.forEach(item => this.eval(item.code, item.cb))
       this.queue = null
