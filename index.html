@@ -4,7 +4,7 @@
   <body>
     <script>
       var ipc = require('ipc')
-      ipc.on('eval', function (message) {
+      ipc.on('data', function (message) {
         var err
         try {
           var res = eval(message.code)

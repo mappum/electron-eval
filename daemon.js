@@ -20,8 +20,8 @@ function main (opts) {
 
   stdin.on('data', function (message) {
     resetTimeout()
-    if (!Array.isArray(message)) return
-    window.webContents.send.apply(window.webContents, message)
+    if (typeof message !== 'object') return
+    window.webContents.send('data', message)
   })
 
   ipc.on('data', function (e, data) {
