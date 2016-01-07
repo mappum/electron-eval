@@ -24,23 +24,30 @@ class Daemon extends EventEmitter {
 
     this.stdin.write(opts)
     this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
-    this.stdout.on('data', function (message) {
-      this.emit(message.id, message)
-    }.bind(this))
+
+    this.queue = []
+    this.ready = false
+    this.stdout.once('data', () => {
+      this.stdout.on('data', message => this.emit(message.id, message))
+      this.ready = true
+      this.queue.forEach(item => this.eval(item.code, item.cb))
+      this.queue = null
+      this.emit('ready')
+    })
   }
 
   eval (code, cb) {
     var id = generateId()
-
-    this.once(id, function (res) {
+    this.once(id, res => {
       if (res.err) var err = new Error(res.err)
       if (cb) {
         if (res.err) return cb(err)
         return cb(null, res.res)
       }
       this.emit('error', err)
-    }.bind(this))
-    this.stdin.write({ id: id, code: code })
+    })
+    if (!this.ready) return this.queue.push({ code, cb })
+    this.stdin.write({ id, code })
   }
 
   keepalive () {
