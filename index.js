@@ -31,12 +31,15 @@ class Daemon extends EventEmitter {
 
   eval (code, cb) {
     var id = generateId()
-    if (cb) {
-      this.once(id, function (res) {
-        if (res.err) return cb(new Error(res.err))
-        cb(null, res.res)
-      })
-    }
+
+    this.once(id, function (res) {
+      if (res.err) var err = new Error(res.err)
+      if (cb) {
+        if (res.err) return cb(err)
+        return cb(null, res.res)
+      }
+      this.emit('error', err)
+    }.bind(this))
     this.stdin.write({ id: id, code: code })
   }
 
