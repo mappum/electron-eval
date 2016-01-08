@@ -11,6 +11,7 @@ module.exports = function (opts) {
 }
 
 var daemonMain = path.join(__dirname, 'daemon.js')
+var i = 0
 
 class Daemon extends EventEmitter {
   constructor (opts) {
@@ -39,7 +40,7 @@ class Daemon extends EventEmitter {
   }
 
   eval (code, cb) {
-    var id = generateId()
+    var id = (i++).toString(36)
     this.once(id, res => {
       if (res.err) var err = new Error(res.err)
       if (cb) {
@@ -59,8 +60,4 @@ class Daemon extends EventEmitter {
   close (signal) {
     this.child.kill(signal)
   }
-}
-
-function generateId () {
-  return Math.random().toString(36).slice(3)
 }
