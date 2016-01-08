@@ -19,7 +19,9 @@ class Daemon extends EventEmitter {
     opts.timeout = typeof opts.timeout === 'number' ? opts.timeout : 10e3
     this.child = spawn(electron, [ daemonMain ])
     this.stdout = this.child.stdout.pipe(json.Parser())
+    this.stdout.on('error', err => this.emit('error', err))
     this.stdin = json.Stringifier()
+    this.stdin.on('error', err => this.emit('error', err))
     this.stdin.pipe(this.child.stdin)
 
     this.stdin.write(opts)
@@ -41,10 +43,10 @@ class Daemon extends EventEmitter {
     this.once(id, res => {
       if (res.err) var err = new Error(res.err)
       if (cb) {
-        if (res.err) return cb(err)
+        if (err) return cb(err)
         return cb(null, res.res)
       }
-      this.emit('error', err)
+      if (err) this.emit('error', err)
     })
     if (!this.ready) return this.queue.push({ code, cb })
     this.stdin.write({ id, code })
