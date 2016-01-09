@@ -42,7 +42,10 @@ class Daemon extends EventEmitter {
   eval (code, cb) {
     var id = (i++).toString(36)
     this.once(id, res => {
-      if (res.err) var err = new Error(res.err)
+      if (res.err) {
+        var err = new Error(`Error evaluating "${code}": ${res.err}`)
+        err.original = res.err
+      }
       if (cb) {
         if (err) return cb(err)
         return cb(null, res.res)
@@ -59,5 +62,7 @@ class Daemon extends EventEmitter {
 
   close (signal) {
     this.child.kill(signal)
+    this.stdout = this.stdin = null
+    clearInterval(this.keepaliveInterval)
   }
 }
