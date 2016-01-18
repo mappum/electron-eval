@@ -85,3 +85,7 @@ daemon.eval('window.send("test", 123)')
 Emitted by `daemon` when the Electron window has been set up and is ready to eval code.
 - #### `error`
 Emitted by `daemon` when `daemon.eval()` evaluates code that throws an error, but no callback is provided.
+
+## Related
+
+[electron-spawn](https://github.com/maxogden/electron-spawn)
