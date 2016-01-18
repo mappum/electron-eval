@@ -81,9 +81,9 @@ daemon.eval('window.send("test", 123)')
 
 ### Events
 
-- #### `ready`
+#### - `ready`
 Emitted by `daemon` when the Electron window has been set up and is ready to eval code.
-- #### `error`
+#### - `error`
 Emitted by `daemon` when `daemon.eval()` evaluates code that throws an error, but no callback is provided.
 
 ## Related
