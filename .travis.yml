@@ -3,6 +3,7 @@ os:
   - osx
 
 env:
+  - NODE_VERSION=4
   - NODE_VERSION=5
 
 addons:
