@@ -4,7 +4,7 @@
   "description": "Run code inside a hidden Electron window",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard && tape test.js"
   },
   "keywords": [
     "electron",
@@ -17,5 +17,9 @@
   "dependencies": {
     "electron-prebuilt": "^0.36.2",
     "newline-json": "^0.1.1"
+  },
+  "devDependencies": {
+    "standard": "^5.4.1",
+    "tape": "^4.4.0"
   }
 }
