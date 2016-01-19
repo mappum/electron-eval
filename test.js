@@ -1,6 +1,14 @@
 var test = require('tape')
 var electronEval = require('.')
 
+test('catch errors', t => {
+  process.on('uncaughtException', err => {
+    console.error(err)
+    t.error(err, 'caught error')
+  })
+  t.end()
+})
+
 var daemon
 test('create daemon', t => {
   daemon = electronEval({ timeout: 5000 })
