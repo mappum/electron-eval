@@ -37,6 +37,7 @@ class Daemon extends EventEmitter {
       this.queue.forEach(item => this.eval(item.code, item.cb))
       this.queue = null
       this.emit('ready')
+      this.keepalive()
     })
   }
 

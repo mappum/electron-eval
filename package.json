@@ -4,7 +4,9 @@
   "description": "Run code inside a hidden Electron window",
   "main": "index.js",
   "scripts": {
-    "test": "standard && tape test.js"
+    "test": "standard && tap test.js --cov",
+    "test-tap": "tap test.js -Rtap",
+    "test-lcov": "mkdir -p coverage && tap test.js -Rsilent --coverage-report=text-lcov > coverage/lcov.info"
   },
   "keywords": [
     "electron",
@@ -20,6 +22,6 @@
   },
   "devDependencies": {
     "standard": "^5.4.1",
-    "tape": "^4.4.0"
+    "tap": "^5.1.1"
   }
 }
