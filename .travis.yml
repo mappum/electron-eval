@@ -1,3 +1,22 @@
-language: node_js
-node_js:
-  - "5"
+os:
+  - osx
+
+env:
+  - NODE_VERSION=5
+
+install:
+  - rm -rf ~/.nvm
+  - git clone https://github.com/creationix/nvm.git ~/.nvm
+  - source ~/.nvm/nvm.sh
+  - nvm install $NODE_VERSION
+  - nvm --version
+  - node --version
+  - npm --version
+  - npm install
+
+script:
+  - npm test
+
+cache:
+  directories:
+  - node_modules
