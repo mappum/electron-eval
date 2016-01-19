@@ -1,5 +1,9 @@
 # electron-eval
 
+[![npm version](https://img.shields.io/npm/v/electron-eval.svg)](https://www.npmjs.com/package/electron-eval)
+[![Build Status](https://travis-ci.org/mappum/electron-eval.svg?branch=master)](https://travis-ci.org/mappum/electron-eval)
+[![Dependency Status](https://david-dm.org/mappum/electron-eval.svg)](https://david-dm.org/mappum/electron-eval)
+
 Run code inside a hidden Electron window
 
 `electron-eval` gives you a way to access a headless browser (Chromium) from Node.js. This can be useful for testing browser-specific code, or using web APIs that are in browsers but not yet in Node (such as [WebRTC](https://github.com/mappum/electron-webrtc)).
