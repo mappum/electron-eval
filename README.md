@@ -82,6 +82,11 @@ daemon.eval('window.send("test", 123)')
 
 // the node process will print "got message: 123"
 ```
+### Properties
+
+#### `daemon.child`
+
+A handle to the Electron daemon's process (of type [child_process.ChildProcess](https://nodejs.org/api/child_process.html#child_process_class_childprocess)).
 
 ### Events
 
