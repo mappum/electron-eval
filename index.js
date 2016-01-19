@@ -19,6 +19,7 @@ class Daemon extends EventEmitter {
     opts = opts || {}
     opts.timeout = typeof opts.timeout === 'number' ? opts.timeout : 10e3
     this.child = spawn(electron, [ daemonMain ])
+    this.child.on('error', err => this.emit('error', err))
     this.stdout = this.child.stdout.pipe(json.Parser())
     this.stdout.on('error', err => this.emit('error', err))
     this.stdin = json.Stringifier()
