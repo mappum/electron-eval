@@ -21,7 +21,7 @@
     "newline-json": "^0.1.1"
   },
   "devDependencies": {
-    "standard": "^5.4.1",
+    "standard": "^6.0.3",
     "tap": "^5.1.1"
   }
 }
