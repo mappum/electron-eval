@@ -19,11 +19,11 @@ class Daemon extends EventEmitter {
     opts = opts || {}
     opts.timeout = typeof opts.timeout === 'number' ? opts.timeout : 10e3
     this.child = spawn(electron, [ daemonMain ])
-    this.child.on('error', err => this.emit('error', err))
+    this.child.on('error', (err) => this.emit('error', err))
     this.stdout = this.child.stdout.pipe(json.Parser())
-    this.stdout.on('error', err => this.emit('error', err))
+    this.stdout.on('error', (err) => this.emit('error', err))
     this.stdin = json.Stringifier()
-    this.stdin.on('error', err => this.emit('error', err))
+    this.stdin.on('error', (err) => this.emit('error', err))
     this.stdin.pipe(this.child.stdin)
 
     this.stdin.write(opts)
@@ -32,9 +32,9 @@ class Daemon extends EventEmitter {
     this.queue = []
     this.ready = false
     this.stdout.once('data', () => {
-      this.stdout.on('data', message => this.emit(message[0], message[1]))
+      this.stdout.on('data', (message) => this.emit(message[0], message[1]))
       this.ready = true
-      this.queue.forEach(item => this.eval(item.code, item.cb))
+      this.queue.forEach((item) => this.eval(item.code, item.cb))
       this.queue = null
       this.emit('ready')
       this.keepalive()
@@ -43,7 +43,7 @@ class Daemon extends EventEmitter {
 
   eval (code, cb) {
     var id = (i++).toString(36)
-    this.once(id, res => {
+    this.once(id, (res) => {
       if (res.err) {
         var err = new Error(`Error evaluating "${code}": ${res.err}`)
         err.original = res.err
