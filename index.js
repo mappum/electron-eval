@@ -65,7 +65,7 @@ class Daemon extends EventEmitter {
   close (signal) {
     this.child.kill(signal)
     this.stdout = this.stdin = null
-    this.eval = () => {}
+    this.eval = (code, cb) => cb && cb(new Error('Daemon already closed'))
     clearInterval(this.keepaliveInterval)
   }
 }
