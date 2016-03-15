@@ -23,5 +23,13 @@
   "devDependencies": {
     "standard": "^6.0.4",
     "tap": "^5.1.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mappum/electron-eval.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mappum/electron-eval/issues"
+  },
+  "homepage": "https://github.com/mappum/electron-eval#readme"
 }
