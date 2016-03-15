@@ -59,6 +59,7 @@ class Daemon extends EventEmitter {
   }
 
   keepalive () {
+    if (!this.stdin) return
     this.stdin.write(0)
   }
 
