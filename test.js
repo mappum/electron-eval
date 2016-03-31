@@ -90,3 +90,13 @@ test('close daemon', (t) => {
   })
   daemon.close()
 })
+
+test('xvfb has started and shutdown', (t) => {
+  daemon = electronEval({ headless: true })
+  daemon.on('ready', function () {
+    t.pass('no errors were thrown when starting Xvfb')
+    daemon.close()
+    t.pass('no errors were thrown when ending Xvfb')
+    t.end()
+  })
+})
