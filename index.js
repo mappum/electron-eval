@@ -2,6 +2,7 @@
 
 var electron = require('electron-prebuilt')
 var spawn = require('child_process').spawn
+var Xvfb = require('xvfb')
 var json = require('newline-json')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
@@ -18,6 +19,10 @@ class Daemon extends EventEmitter {
     super()
     opts = opts || {}
     opts.timeout = typeof opts.timeout === 'number' ? opts.timeout : 10e3
+    if (opts.headless) {
+      this.xvfb = new Xvfb(opts.xvfb || {})
+      this.xvfb.startSync()
+    }
     this.child = spawn(electron, [ daemonMain ])
     this.child.on('error', (err) => this.emit('error', err))
     this.stdout = this.child.stdout.pipe(json.Parser())
@@ -64,6 +69,9 @@ class Daemon extends EventEmitter {
   }
 
   close (signal) {
+    if (this.xvfb) {
+      this.xvfb.stopSync()
+    }
     this.child.kill(signal)
     this.stdout = this.stdin = null
     this.eval = (code, cb) => cb && cb(new Error('Daemon already closed'))

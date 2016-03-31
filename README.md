@@ -46,6 +46,10 @@ Creates a new hidden Electron instance. This may be called many times to create 
 `opts` may be an object containing the following keys:
 ```js
 {
+  headless: Boolean // default: false
+  // whether or not we should run in headless mode (using Xvfb)
+  xvfb: Object // default: {}
+  // configures specific xvfb options (see: https://github.com/Rob--W/node-xvfb#usage)
   timeout: Number // default: 10000
   // how often to check if the parent node process is still
   // alive (in milliseconds). If the node process is killed,

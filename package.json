@@ -18,7 +18,8 @@
   "license": "MIT",
   "dependencies": {
     "electron-prebuilt": "^0.37.2",
-    "newline-json": "^0.1.1"
+    "newline-json": "^0.1.1",
+    "xvfb": "^0.2.3"
   },
   "devDependencies": {
     "standard": "^6.0.4",
