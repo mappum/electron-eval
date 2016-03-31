@@ -8,6 +8,12 @@ Run code inside a hidden Electron window
 
 `electron-eval` gives you a way to access a headless browser (Chromium) from Node.js. This can be useful for testing browser-specific code, or using web APIs that are in browsers but not yet in Node (such as [WebRTC](https://github.com/mappum/electron-webrtc)).
 
+## Prerequisites
+
+To run headless mode, you'll need the `xvfb` package:
+
+	$ sudo apt-get install xvfb
+
 ## Usage
 
 `npm install electron-eval`
@@ -98,6 +104,11 @@ A handle to the Electron daemon's process (of type [child_process.ChildProcess](
 Emitted by `daemon` when the Electron window has been set up and is ready to eval code.
 #### - `error`
 Emitted by `daemon` when `daemon.eval()` evaluates code that throws an error, but no callback is provided.
+
+### Environment Variables
+
+#### `HEADLESS`
+Setting this variable to true also allows the module to go into headless mode.
 
 ## Related
 
