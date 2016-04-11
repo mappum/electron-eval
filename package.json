@@ -1,6 +1,6 @@
 {
   "name": "electron-eval",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Run code inside a hidden Electron window",
   "main": "index.js",
   "scripts": {
