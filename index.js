@@ -2,10 +2,12 @@
 
 var electron = require('electron-prebuilt')
 var spawn = require('child_process').spawn
-var Xvfb = require('xvfb')
 var json = require('newline-json')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
+
+var Xvfb
+try { Xvfb = require('xvfb') } catch (err) {}
 
 module.exports = function (opts) {
   return new Daemon(opts)
@@ -19,7 +21,7 @@ class Daemon extends EventEmitter {
     super()
     opts = opts || {}
     opts.timeout = typeof opts.timeout === 'number' ? opts.timeout : 10e3
-    if (opts.headless || process.env.HEADLESS) {
+    if ((opts.headless || process.env.HEADLESS) && Xvfb != null) {
       this.xvfb = new Xvfb(opts.xvfb || {})
       this.xvfb.startSync()
     }

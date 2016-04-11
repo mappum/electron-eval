@@ -18,12 +18,14 @@
   "license": "MIT",
   "dependencies": {
     "electron-prebuilt": "^0.37.2",
-    "newline-json": "^0.1.1",
-    "xvfb": "^0.2.3"
+    "newline-json": "^0.1.1"
   },
   "devDependencies": {
     "standard": "^6.0.4",
     "tap": "^5.1.1"
+  },
+  "optionalDependencies": {
+    "xvfb": "^0.2.3"
   },
   "repository": {
     "type": "git",
