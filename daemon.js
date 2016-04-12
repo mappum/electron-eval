@@ -29,7 +29,7 @@ function main (opts) {
   })
 
   app.on('ready', function () {
-    window = new BrowserWindow({ show: false })
+    window = new BrowserWindow(opts.windowOpts)
     window.loadUrl('file://' + path.join(__dirname, 'index.html'))
     window.webContents.on('did-finish-load', function () {
       stdout.write('ready')

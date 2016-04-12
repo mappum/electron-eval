@@ -21,6 +21,7 @@ class Daemon extends EventEmitter {
     super()
     opts = opts || {}
     opts.timeout = typeof opts.timeout === 'number' ? opts.timeout : 10e3
+    opts.windowOpts = opts.windowOpts || { show: false }
     if ((opts.headless || process.env.HEADLESS) && Xvfb != null) {
       this.xvfb = new Xvfb(opts.xvfb || {})
       this.xvfb.startSync()
