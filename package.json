@@ -4,9 +4,13 @@
   "description": "Run code inside a hidden Electron window",
   "main": "index.js",
   "scripts": {
-    "test": "standard && tap test.js --cov",
+    "test": "standard src daemon.js test.js && tap test.js --cov",
     "test-tap": "tap test.js -Rtap",
-    "test-lcov": "mkdir -p coverage && tap test.js -Rsilent --coverage-report=text-lcov > coverage/lcov.info"
+    "test-lcov": "mkdir -p coverage && tap test.js -Rsilent --coverage-report=text-lcov > coverage/lcov.info",
+    "build": "rm -rf lib && babel --presets es2015 src -d lib",
+    "source": "rm -rf lib && ln -s src lib",
+    "prepublish": "npm run build",
+    "publish": "npm run source"
   },
   "keywords": [
     "electron",
@@ -17,6 +21,8 @@
   "author": "Matt Bell <mappum@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "babel-cli": "^6.7.7",
+    "babel-preset-es2015": "^6.6.0",
     "electron-prebuilt": "^0.37.2",
     "newline-json": "^0.1.1"
   },
