@@ -88,7 +88,7 @@ class Daemon extends EventEmitter {
     try {
       this.xvfb.startSync()
     } catch (e) {
-      if (err.message === 'Could not start Xvfb.') {
+      if (e.message === 'Could not start Xvfb.') {
         var err = new Error('The "xvfb" package is required to run "electron-eval" ' +
           'on Linux. Please install it first ("sudo apt-get install xvfb").')
       }
