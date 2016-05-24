@@ -26,10 +26,7 @@ class Daemon extends EventEmitter {
     if (opts.headless == null && process.platform === 'linux') {
       opts.headless = true
     }
-    if (opts.headless && Xvfb != null) {
-      this.xvfb = new Xvfb(opts.xvfb || {})
-      this.xvfb.startSync()
-    }
+    if (opts.headless) this._startXvfb(opts.xvfb)
     this.child = spawn(electron, [ daemonMain ])
     this.child.on('error', (err) => this.emit('error', err))
     this.stdout = this.child.stdout.pipe(json.Parser())
@@ -83,5 +80,19 @@ class Daemon extends EventEmitter {
     this.stdout = this.stdin = null
     this.eval = (code, cb) => cb && cb(new Error('Daemon already closed'))
     clearInterval(this.keepaliveInterval)
+  }
+
+  _startXvfb (opts) {
+    if (Xvfb == null) return
+    this.xvfb = new Xvfb(opts || {})
+    try {
+      this.xvfb.startSync()
+    } catch (e) {
+      if (err.message === 'Could not start Xvfb.') {
+        var err = new Error('The "xvfb" package is required to run "electron-eval" ' +
+          'on Linux. Please install it first ("sudo apt-get install xvfb").')
+      }
+      this.emit('error', err || e)
+    }
   }
 }
