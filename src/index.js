@@ -6,8 +6,8 @@ var json = require('newline-json')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
 
-var Xvfb
-try { Xvfb = require('xvfb') } catch (err) {}
+var headless
+try { headless = require('headless') } catch (err) {}
 
 module.exports = function (opts) {
   return new Daemon(opts)
@@ -26,28 +26,16 @@ class Daemon extends EventEmitter {
     if (opts.headless == null && process.platform === 'linux') {
       opts.headless = true
     }
-    if (opts.headless) this._startXvfb(opts.xvfb)
-    this.child = spawn(electron, [ daemonMain ])
-    this.child.on('error', (err) => this.emit('error', err))
-    this.stdout = this.child.stdout.pipe(json.Parser())
-    this.stdout.on('error', (err) => this.emit('error', err))
-    this.stdin = json.Stringifier()
-    this.stdin.on('error', (err) => this.emit('error', err))
-    this.stdin.pipe(this.child.stdin)
-
-    this.stdin.write(opts)
-    this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
 
     this.queue = []
     this.ready = false
-    this.stdout.once('data', () => {
-      this.stdout.on('data', (message) => this.emit(message[0], message[1]))
-      this.ready = true
-      this.queue.forEach((item) => this.eval(item.code, item.cb))
-      this.queue = null
-      this.emit('ready')
-      this.keepalive()
-    })
+
+    if (opts.headless) {
+      this._startHeadless(opts.headless || opts.xvfb,
+        () => this._startElectron(opts))
+    } else {
+      this._startElectron(opts)
+    }
   }
 
   eval (code, cb) {
@@ -74,7 +62,7 @@ class Daemon extends EventEmitter {
 
   close (signal) {
     if (this.xvfb) {
-      this.xvfb.stopSync()
+      this.xvfb.kill(signal)
     }
     this.child.kill(signal)
     this.stdout = this.stdin = null
@@ -82,17 +70,42 @@ class Daemon extends EventEmitter {
     clearInterval(this.keepaliveInterval)
   }
 
-  _startXvfb (opts) {
-    if (Xvfb == null) return
-    this.xvfb = new Xvfb(opts || {})
-    try {
-      this.xvfb.startSync()
-    } catch (e) {
-      if (e.message === 'Could not start Xvfb.') {
-        var err = new Error('The "xvfb" package is required to run "electron-eval" ' +
-          'on Linux. Please install it first ("sudo apt-get install xvfb").')
-      }
-      this.emit('error', err || e)
+  _startHeadless (opts, cb) {
+    if (headless == null) {
+      return cb(new Error('Could not load "headless" module'))
     }
+    headless((err, child) => {
+      if (err) {
+        var err2 = new Error(`Could not start Xvfb: "${err.message}". \n` +
+        'The "xvfb" package is required to run "electron-eval" on Linux. ' +
+        'Please install it first ("sudo apt-get install xvfb").')
+        return cb(err2)
+      }
+      this.xvfb = child
+      cb(null)
+    })
+  }
+
+  _startElectron (opts) {
+    this.child = spawn(electron, [ daemonMain ])
+    this.child.on('error', (err) => this.emit('error', err))
+    this.stdout = this.child.stdout.pipe(json.Parser())
+    this.stdout.on('error', (err) => this.emit('error', err))
+    this.stdin = json.Stringifier()
+    this.stdin.on('error', (err) => this.emit('error', err))
+    this.stdin.pipe(this.child.stdin)
+
+    this.stdout.once('data', () => {
+      this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
+      this.stdin.write(opts)
+      this.stdout.once('data', () => {
+        this.stdout.on('data', (message) => this.emit(message[0], message[1]))
+        this.ready = true
+        this.queue.forEach((item) => this.eval(item.code, item.cb))
+        this.queue = null
+        this.emit('ready')
+        this.keepalive()
+      })
+    })
   }
 }
