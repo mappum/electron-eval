@@ -20,9 +20,11 @@ class Daemon extends EventEmitter {
   constructor (opts) {
     super()
     opts = opts || {}
-    opts.timeout = typeof opts.timeout === 'number' ? opts.timeout : 10e3
+    opts.timeout = typeof opts.timeout === 'number'
+      ? opts.timeout : 10e3
     opts.windowOpts = opts.windowOpts || { show: false }
-    opts.headless = opts.headless || process.env.HEADLESS
+    opts.headless = opts.headless != null
+      ? opts.headless : process.env.HEADLESS
     if (opts.headless == null && process.platform === 'linux') {
       opts.headless = true
     }
@@ -31,10 +33,10 @@ class Daemon extends EventEmitter {
     this.ready = false
 
     if (opts.headless) {
-      this._startHeadless(opts.headless || opts.xvfb, (err) => {
-          if (err) return this.emit('error', err)
-          this._startElectron(opts)
-        })
+      this._startHeadless((err) => {
+        if (err) return this.emit('error', err)
+        this._startElectron(opts)
+      })
     } else {
       this._startElectron(opts)
     }
@@ -72,11 +74,11 @@ class Daemon extends EventEmitter {
     clearInterval(this.keepaliveInterval)
   }
 
-  _startHeadless (opts, cb) {
+  _startHeadless (cb) {
     if (headless == null) {
       return cb(new Error('Could not load "headless" module'))
     }
-    headless((err, child) => {
+    headless((err, child, display) => {
       if (err) {
         var err2 = new Error(`Could not start Xvfb: "${err.message}". \n` +
         'The "xvfb" package is required to run "electron-eval" on Linux. ' +
@@ -85,18 +87,22 @@ class Daemon extends EventEmitter {
       }
       process.on('exit', () => child.kill())
       this.xvfb = child
+      this.xDisplay = `:${display}`
       cb(null)
     })
   }
 
-  _startElectron (opts) {
-    this.child = spawn(electron, [ daemonMain ])
+  _startElectron (opts, cb) {
+    var env = {}
+    if (this.xDisplay) env.DISPLAY = this.xDisplay
+    this.child = spawn(electron, [ daemonMain ], { env })
     this.child.on('error', (err) => this.emit('error', err))
     this.stdout = this.child.stdout.pipe(json.Parser())
     this.stdout.on('error', (err) => this.emit('error', err))
     this.stdin = json.Stringifier()
     this.stdin.on('error', (err) => this.emit('error', err))
     this.stdin.pipe(this.child.stdin)
+    process.on('exit', () => this.child.kill())
 
     this.stdout.once('data', () => {
       this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
