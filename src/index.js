@@ -31,8 +31,10 @@ class Daemon extends EventEmitter {
     this.ready = false
 
     if (opts.headless) {
-      this._startHeadless(opts.headless || opts.xvfb,
-        () => this._startElectron(opts))
+      this._startHeadless(opts.headless || opts.xvfb, (err) => {
+          if (err) return this.emit('error', err)
+          this._startElectron(opts)
+        })
     } else {
       this._startElectron(opts)
     }

@@ -13,7 +13,7 @@ var options
 var window
 
 stdin.once('data', main)
-stdout.write('starting\n')
+stdout.write('starting')
 
 function main (opts) {
   options = opts
@@ -33,7 +33,7 @@ function main (opts) {
     window = new BrowserWindow(opts.windowOpts)
     window.loadUrl('file://' + path.join(__dirname, 'index.html'))
     window.webContents.on('did-finish-load', function () {
-      stdout.write('ready\n')
+      stdout.write('ready')
     })
   })
 }
