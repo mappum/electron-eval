@@ -1,8 +1,10 @@
 var json = require('newline-json')
-var app = require('app')
-var BrowserWindow = require('browser-window')
+var app = require('electron').app
+var BrowserWindow = require('electron').BrowserWindow
 var path = require('path')
-var ipc = require('ipc')
+var ipc = require('electron').ipcMain
+
+app.dock.hide()
 
 var stdout = json.Stringifier()
 stdout.pipe(process.stdout)
@@ -31,7 +33,7 @@ function main (opts) {
 
   app.on('ready', function () {
     window = new BrowserWindow(opts.windowOpts)
-    window.loadUrl('file://' + path.join(__dirname, 'index.html'))
+    window.loadURL('file://' + path.join(__dirname, 'index.html'))
     window.webContents.on('did-finish-load', function () {
       stdout.write('ready')
     })
