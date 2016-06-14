@@ -4,7 +4,7 @@
   "description": "Run code inside a hidden Electron window",
   "main": "index.js",
   "scripts": {
-    "test": "standard src daemon.js test.js && tap test.js --cov",
+    "test": "standard src/*.js daemon.js test.js && tap test.js --cov",
     "test-tap": "tap test.js -Rtap",
     "test-lcov": "mkdir -p coverage && tap test.js -Rsilent --coverage-report=text-lcov > coverage/lcov.info",
     "build": "rm -rf lib && babel --presets es2015 src -d lib",
