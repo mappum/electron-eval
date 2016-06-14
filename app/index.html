@@ -3,13 +3,13 @@
   <head></head>
   <body>
     <script>
-      var ipc = require('ipc')
+      var ipc = require('electron').ipcRenderer
 
       window.send = function (event, message) {
         ipc.send('data', [ event, message ])
       }
 
-      ipc.on('data', function (message) {
+      ipc.on('data', function (e, message) {
         var err
         try {
           var res = eval(message.code)

@@ -22,7 +22,7 @@ class Daemon extends EventEmitter {
     opts = opts || {}
     opts.timeout = typeof opts.timeout === 'number'
       ? opts.timeout : 10e3
-    opts.windowOpts = opts.windowOpts || { show: false }
+    opts.windowOpts = opts.windowOpts || { show: false, skipTaskbar: true }
     opts.headless = opts.headless != null
       ? opts.headless : process.env.HEADLESS
     if (opts.headless == null && process.platform === 'linux') {
