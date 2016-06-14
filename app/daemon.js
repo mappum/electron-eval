@@ -4,7 +4,7 @@ var BrowserWindow = require('electron').BrowserWindow
 var path = require('path')
 var ipc = require('electron').ipcMain
 
-app.dock.hide()
+if (app.dock) app.dock.hide()
 
 var stdout = json.Stringifier()
 stdout.pipe(process.stdout)
