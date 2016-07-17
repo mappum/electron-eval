@@ -9,6 +9,14 @@ test('catch errors', (t) => {
   t.end()
 })
 
+test('catch child process crashing', (t) => {
+  var crashDaemon = electronEval({ electron: './crash.sh', timeout: 5000 })
+  crashDaemon.on('error', (err) => {
+    t.same(err.message, 'Child process exited with code 1.\nStderr:\nFlagrant error\n')
+    t.end()
+  })
+})
+
 var daemon
 test('create daemon', (t) => {
   daemon = electronEval({ timeout: 5000 })
