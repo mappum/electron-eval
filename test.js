@@ -54,6 +54,24 @@ test('erroring code with no callback', (t) => {
   daemon.eval('foo()')
 })
 
+test('eval in main process', (t) => {
+  daemon.eval('!!window.webContents', false, (err, res) => {
+    t.pass('callback called')
+    t.error(err, 'no error')
+    t.equal(res, true, 'correct response value')
+    t.end()
+  })
+})
+
+test('eval in renderer', (t) => {
+  daemon.eval('!!window.webContents', true, (err, res) => {
+    t.pass('callback called')
+    t.error(err, 'no error')
+    t.equal(res, false, 'correct response value')
+    t.end()
+  })
+})
+
 test('close daemon', (t) => {
   daemon.child.once('exit', () => {
     t.pass('daemon process exited')

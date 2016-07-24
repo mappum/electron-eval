@@ -42,7 +42,9 @@ class Daemon extends EventEmitter {
     }
   }
 
-  eval (code, cb) {
+  eval (code, evalInRenderer, cb) {
+    if (!cb) cb = evalInRenderer
+    evalInRenderer = evalInRenderer !== false
     var id = (i++).toString(36)
     this.once(id, (res) => {
       if (res.err) {
@@ -55,8 +57,8 @@ class Daemon extends EventEmitter {
       }
       if (err) this.emit('error', err)
     })
-    if (!this.ready) return this.queue.push({ code, cb })
-    this.stdin.write({ id, code })
+    if (!this.ready) return this.queue.push({ code, evalInRenderer, cb })
+    this.stdin.write({ id, evalInRenderer, code })
   }
 
   keepalive () {
@@ -110,7 +112,7 @@ class Daemon extends EventEmitter {
       this.stdout.once('data', () => {
         this.stdout.on('data', (message) => this.emit(message[0], message[1]))
         this.ready = true
-        this.queue.forEach((item) => this.eval(item.code, item.cb))
+        this.queue.forEach((item) => this.eval(item.code, item.evalInRenderer, item.cb))
         this.queue = null
         this.emit('ready')
         this.keepalive()

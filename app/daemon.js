@@ -24,7 +24,19 @@ function main (opts) {
   stdin.on('data', function (message) {
     resetTimeout()
     if (typeof message !== 'object') return
-    window.webContents.send('data', message)
+    if (message.evalInRenderer) {
+      delete message.evalInRenderer
+      window.webContents.send('data', message)
+    } else {
+      var res
+      var err
+      try {
+        res = eval(message.code)
+      } catch(e) {
+        err = e.message
+      }
+      stdout.write([ message.id, { res: res, err: err }])
+    }
   })
 
   ipc.on('data', function (e, data) {
