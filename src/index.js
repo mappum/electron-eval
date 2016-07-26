@@ -85,7 +85,8 @@ class Daemon extends EventEmitter {
     if (headless == null) {
       return cb(new Error('Could not load "headless" module'))
     }
-    headless((err, child, display) => {
+    var opts = {args: ['+extension', 'RANDR']}
+    headless(opts, (err, child, display) => {
       if (err) {
         var err2 = new Error(`Could not start Xvfb: "${err.message}". \n` +
         'The "xvfb" package is required to run "electron-eval" on Linux. ' +
