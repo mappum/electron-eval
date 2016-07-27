@@ -94,8 +94,8 @@ test('eval in renderer', (t) => {
 })
 
 test('close daemon', (t) => {
-  daemon.child.once('exit', () => {
-    t.pass('daemon process exited')
+  daemon.child.once('exit', (code) => {
+    t.same(code, 0, 'exit code is 0')
     t.end()
   })
   daemon.close()
