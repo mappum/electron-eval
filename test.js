@@ -63,8 +63,13 @@ test('eval in main process', (t) => {
   })
 })
 
+test('eval with no callback', (t) => {
+  daemon.eval('!!window.webContents', true)
+  t.end()
+})
+
 test('eval in renderer', (t) => {
-  daemon.eval('!!window.webContents', true, (err, res) => {
+  daemon.eval('!!window.webContents', (err, res) => {
     t.pass('callback called')
     t.error(err, 'no error')
     t.equal(res, false, 'correct response value')

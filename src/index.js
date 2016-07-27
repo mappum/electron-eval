@@ -43,7 +43,7 @@ class Daemon extends EventEmitter {
   }
 
   eval (code, evalInRenderer, cb) {
-    if (!cb) cb = evalInRenderer
+    if (typeof evalInRenderer === 'function') cb = evalInRenderer
     evalInRenderer = evalInRenderer !== false
     var id = (i++).toString(36)
     this.once(id, (res) => {
