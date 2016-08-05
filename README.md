@@ -67,9 +67,17 @@ Creates a new hidden Electron instance. This may be called many times to create 
 }
 ```
 
-#### `daemon.eval(code, [callback])`
+#### `daemon.eval(code, [opts], [callback])`
 
 Evaluates the `code` string in the Electron window, and calls   `callback(error, result)`. If `callback` is not provided and the eval causes an error, the daemon will emit an `error` event.
+
+The `opts` object may contain:
+```js
+{
+  mainProcess: Boolean // default: false
+  // if true, the code will be evaluated in the Electron main process, rather than the Electron window
+}
+```
 
 Note that you may need to stringify the result value with `JSON.stringify()` so it will be sent properly across processes.
 
