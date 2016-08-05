@@ -51,11 +51,19 @@ test('erroring code with no callback', (t) => {
     t.ok(err, 'error received')
     t.end()
   })
+  daemon.eval('foo()', {})
+})
+test('erroring code with no optional args', (t) => {
+  daemon.once('error', (err) => {
+    t.pass('error event emitted')
+    t.ok(err, 'error received')
+    t.end()
+  })
   daemon.eval('foo()')
 })
 
 test('eval in main process', (t) => {
-  daemon.eval('!!window.webContents', false, (err, res) => {
+  daemon.eval('!!window.webContents', { mainProcess: true }, (err, res) => {
     t.pass('callback called')
     t.error(err, 'no error')
     t.equal(res, true, 'correct response value')
@@ -64,7 +72,7 @@ test('eval in main process', (t) => {
 })
 
 test('eval with no callback', (t) => {
-  daemon.eval('!!window.webContents', true)
+  daemon.eval('!!window.webContents')
   t.end()
 })
 
