@@ -25,7 +25,7 @@ class Daemon extends EventEmitter {
     opts.windowOpts = opts.windowOpts || { show: false, skipTaskbar: true }
     opts.headless = opts.headless != null
       ? opts.headless : process.env.HEADLESS
-    if (opts.headless == null && process.platform === 'linux') {
+    if (!opts.headless && process.platform === 'linux') {
       opts.headless = true
     }
 
@@ -42,13 +42,17 @@ class Daemon extends EventEmitter {
     }
   }
 
-  eval (code, evalInRenderer, cb) {
-    if (typeof evalInRenderer === 'function') cb = evalInRenderer
-    evalInRenderer = evalInRenderer !== false
+  eval (code, opts = {}, cb) {
+    if (typeof opts === 'function') {
+      cb = opts
+      opts = {}
+    }
     var id = (i++).toString(36)
     this.once(id, (res) => {
       if (res.err) {
-        var err = new Error(`Error evaluating "${code}": ${res.err}`)
+        var target = opts.mainProcess ? 'main process' : 'window'
+        var err = new Error(`Error evaluating "${code}" ` +
+          `in "${target}": ${res.err}`)
         err.original = res.err
       }
       if (cb) {
@@ -57,8 +61,8 @@ class Daemon extends EventEmitter {
       }
       if (err) this.emit('error', err)
     })
-    if (!this.ready) return this.queue.push({ code, evalInRenderer, cb })
-    this.stdin.write({ id, evalInRenderer, code })
+    if (!this.ready) return this.queue.push([ code, opts, cb ])
+    this.stdin.write({ id, opts, code })
   }
 
   keepalive () {
@@ -112,7 +116,7 @@ class Daemon extends EventEmitter {
       this.stdout.once('data', () => {
         this.stdout.on('data', (message) => this.emit(message[0], message[1]))
         this.ready = true
-        this.queue.forEach((item) => this.eval(item.code, item.evalInRenderer, item.cb))
+        this.queue.forEach((item) => this.eval(...item))
         this.queue = null
         this.emit('ready')
         this.keepalive()

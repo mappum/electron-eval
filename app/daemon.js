@@ -24,18 +24,17 @@ function main (opts) {
   stdin.on('data', function (message) {
     resetTimeout()
     if (typeof message !== 'object') return
-    if (message.evalInRenderer) {
-      delete message.evalInRenderer
-      window.webContents.send('data', message)
-    } else {
+    if (message.opts.mainProcess) {
       var res
       var err
       try {
         res = eval(message.code)
-      } catch(e) {
-        err = e.message
+      } catch (e) {
+        err = e.stack
       }
-      stdout.write([ message.id, { res: res, err: err }])
+      stdout.write([ message.id, { res: res, err: err } ])
+    } else {
+      window.webContents.send('data', message)
     }
   })
 
