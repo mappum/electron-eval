@@ -9,6 +9,14 @@ test('catch errors', (t) => {
   t.end()
 })
 
+test('catch child process crashing', (t) => {
+  var crashDaemon = electronEval({ electron: './crash.sh', timeout: 5000 })
+  crashDaemon.on('error', (err) => {
+    t.same(err.message, 'Child process exited with code 1.\nStderr:\nFlagrant error\n')
+    t.end()
+  })
+})
+
 var daemon
 test('create daemon', (t) => {
   daemon = electronEval({ timeout: 5000 })
@@ -115,8 +123,8 @@ test('queueing code before daemon is ready', (t) => {
 })
 
 test('close daemon', (t) => {
-  daemon.child.once('exit', () => {
-    t.pass('daemon process exited')
+  daemon.child.once('exit', (code) => {
+    t.same(code, 0, 'exit code is 0')
     t.end()
   })
   daemon.close()

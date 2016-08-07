@@ -5,6 +5,7 @@ var spawn = require('child_process').spawn
 var json = require('newline-json')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
+var toArray = require('stream-to-array')
 
 var headless
 try { headless = require('headless') } catch (err) {}
@@ -84,7 +85,8 @@ class Daemon extends EventEmitter {
     if (headless == null) {
       return cb(new Error('Could not load "headless" module'))
     }
-    headless((err, child, display) => {
+    var opts = {args: ['+extension', 'RANDR']}
+    headless(opts, (err, child, display) => {
       if (err) {
         var err2 = new Error(`Could not start Xvfb: "${err.message}". \n` +
         'The "xvfb" package is required to run "electron-eval" on Linux. ' +
@@ -100,9 +102,25 @@ class Daemon extends EventEmitter {
 
   _startElectron (opts, cb) {
     var env = {}
+    var exitCode
+    var exitStderr
+    var childExit = () => {
+      if (exitCode && typeof exitStderr !== 'undefined') {
+        this.emit('error', new Error(`Child process exited with code ${exitCode}.\nStderr:\n${exitStderr}`))
+      }
+    }
     if (this.xDisplay) env.DISPLAY = this.xDisplay
-    this.child = spawn(electron, [ daemonMain ], { env })
+    this.child = spawn(opts.electron || electron, [ daemonMain ], { env })
+    this.child.on('close', (code) => {
+      exitCode = code
+      childExit()
+    })
     this.child.on('error', (err) => this.emit('error', err))
+    toArray(this.child.stderr, (err, stderr) => {
+      if (err) return this.emit('error', err)
+      exitStderr = stderr
+      childExit()
+    })
     this.stdout = this.child.stdout.pipe(json.Parser())
     this.stdout.on('error', (err) => this.emit('error', err))
     this.stdin = json.Stringifier()
