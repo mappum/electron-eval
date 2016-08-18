@@ -3,3 +3,4 @@ src
 test.js
 coverage
 .nyc_output
+crash.sh
