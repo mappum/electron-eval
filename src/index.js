@@ -111,7 +111,7 @@ class Daemon extends EventEmitter {
     this.child = spawn(opts.electron || electron, [ daemonMain ], { env })
     this.child.on('close', (code) => {
       if (this.closing) return
-      var err = `Child process exited with code ${code}`
+      var err = `electron-eval error: Electron process exited with code ${code}`
       if (exitStderr) err += `.\nStderr:\n${exitStderr}`
       this.emit('error', new Error(err))
     })
