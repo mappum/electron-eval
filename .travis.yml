@@ -26,7 +26,6 @@ addons:
       - g++-multilib
       - xvfb
 install:
-  - export HEADLESS=true
   - rm -rf ~/.nvm
   - git clone https://github.com/creationix/nvm.git ~/.nvm
   - source ~/.nvm/nvm.sh
@@ -36,6 +35,6 @@ install:
   - npm --version
   - npm install
 script:
-  - npm test
+  - HEADLESS=true npm test
 notifications:
   email: false
