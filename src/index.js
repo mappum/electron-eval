@@ -5,7 +5,6 @@ var spawn = require('child_process').spawn
 var json = require('newline-json')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
-var kill = require('tree-kill')
 
 var headless
 try { headless = require('headless') } catch (err) {}
@@ -75,7 +74,7 @@ class Daemon extends EventEmitter {
   close (signal) {
     this.closing = true
     if (this.xvfb) {
-      kill(this.xvfb.pid, 'SIGKILL')
+      process.kill(this.xvfb.pid, 'SIGKILL')
     }
     this.child.kill(signal)
     this.stdout = this.stdin = null
@@ -95,7 +94,7 @@ class Daemon extends EventEmitter {
         'Please install it first ("sudo apt-get install xvfb").')
         return cb(err2)
       }
-      process.on('exit', () => kill(child.pid, 'SIGKILL'))
+      process.on('exit', () => process.kill(child.pid, 'SIGKILL'))
       this.xvfb = child
       this.xDisplay = `:${display}`
       cb(null)
