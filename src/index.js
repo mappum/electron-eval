@@ -5,7 +5,7 @@ var spawn = require('child_process').spawn
 var json = require('newline-json')
 var path = require('path')
 var EventEmitter = require('events').EventEmitter
-var toArray = require('stream-to-array')
+var kill = require('tree-kill')
 
 var headless
 try { headless = require('headless') } catch (err) {}
@@ -26,12 +26,13 @@ class Daemon extends EventEmitter {
     opts.windowOpts = opts.windowOpts || { show: false, skipTaskbar: true }
     opts.headless = opts.headless != null
       ? opts.headless : process.env.HEADLESS
-    if (!opts.headless && process.platform === 'linux') {
+    if (opts.headless == null && process.platform === 'linux') {
       opts.headless = true
     }
 
     this.queue = []
     this.ready = false
+    this.closing = false
 
     if (opts.headless) {
       this._startHeadless((err) => {
@@ -72,8 +73,9 @@ class Daemon extends EventEmitter {
   }
 
   close (signal) {
+    this.closing = true
     if (this.xvfb) {
-      this.xvfb.kill(signal)
+      kill(this.xvfb.pid, 'SIGKILL')
     }
     this.child.kill(signal)
     this.stdout = this.stdin = null
@@ -85,7 +87,7 @@ class Daemon extends EventEmitter {
     if (headless == null) {
       return cb(new Error('Could not load "headless" module'))
     }
-    var opts = {args: ['+extension', 'RANDR']}
+    var opts = { display: { width: 1024, height: 768, depth: 24 } }
     headless(opts, (err, child, display) => {
       if (err) {
         var err2 = new Error(`Could not start Xvfb: "${err.message}". \n` +
@@ -93,7 +95,7 @@ class Daemon extends EventEmitter {
         'Please install it first ("sudo apt-get install xvfb").')
         return cb(err2)
       }
-      process.on('exit', () => child.kill())
+      process.on('exit', () => kill(child.pid, 'SIGKILL'))
       this.xvfb = child
       this.xDisplay = `:${display}`
       cb(null)
@@ -102,24 +104,18 @@ class Daemon extends EventEmitter {
 
   _startElectron (opts, cb) {
     var env = {}
-    var exitCode
-    var exitStderr
-    var childExit = () => {
-      if (exitCode && typeof exitStderr !== 'undefined') {
-        this.emit('error', new Error(`Child process exited with code ${exitCode}.\nStderr:\n${exitStderr}`))
-      }
-    }
+    var exitStderr = ''
     if (this.xDisplay) env.DISPLAY = this.xDisplay
     this.child = spawn(opts.electron || electron, [ daemonMain ], { env })
     this.child.on('close', (code) => {
-      exitCode = code
-      childExit()
+      if (this.closing) return
+      var err = `Child process exited with code ${code}`
+      if (exitStderr) err += `.\nStderr:\n${exitStderr}`
+      this.emit('error', new Error(err))
     })
     this.child.on('error', (err) => this.emit('error', err))
-    toArray(this.child.stderr, (err, stderr) => {
-      if (err) return this.emit('error', err)
-      exitStderr = stderr
-      childExit()
+    this.child.stderr.on('data', (data) => {
+      exitStderr += `${data.toString()}${exitStderr ? '\n' : ''}`
     })
     this.stdout = this.child.stdout.pipe(json.Parser())
     this.stdout.on('error', (err) => this.emit('error', err))
