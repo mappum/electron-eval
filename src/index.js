@@ -94,7 +94,10 @@ class Daemon extends EventEmitter {
         'Please install it first ("sudo apt-get install xvfb").')
         return cb(err2)
       }
-      process.on('exit', () => process.kill(child.pid, 'SIGKILL'))
+      process.on('exit', () => {
+        if (this.closing) return
+        process.kill(child.pid, 'SIGKILL')
+      })
       this.xvfb = child
       this.xDisplay = `:${display}`
       cb(null)
