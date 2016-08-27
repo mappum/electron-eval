@@ -119,14 +119,25 @@ class Daemon extends EventEmitter {
     this.child.stderr.on('data', (data) => {
       exitStderr += `${data.toString()}${exitStderr ? '\n' : ''}`
     })
-    this.stdout = this.child.stdout.pipe(json.Parser())
+
+    this.child.stdout.once('data', (data) => {
+      // this hack fixes issues where some environments (namely Windows)
+      // prepend a '\n' at the beginning of the stdout stream. This breaks
+      // the JSON parser, so if the stream starts with '\n' we skip it
+      if (data[0] === '\n'.charCodeAt(0)) {
+        data = data.slice(1)
+      }
+      this.stdout.write(data)
+      this.child.stdout.pipe(this.stdout)
+    })
+    this.stdout = json.Parser()
     this.stdout.on('error', (err) => this.emit('error', err))
     this.stdin = json.Stringifier()
     this.stdin.on('error', (err) => this.emit('error', err))
     this.stdin.pipe(this.child.stdin)
     process.on('exit', () => this.child.kill())
 
-    this.stdout.once('data', () => {
+    this.stdout.once('data', (data) => {
       this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
       this.stdin.write(opts)
       this.stdout.once('data', () => {
