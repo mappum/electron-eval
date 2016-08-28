@@ -1,4 +1,3 @@
-var json = require('newline-json')
 var app = require('electron').app
 var BrowserWindow = require('electron').BrowserWindow
 var path = require('path')
@@ -6,49 +5,49 @@ var ipc = require('electron').ipcMain
 
 if (app.dock) app.dock.hide()
 
-var stdout = json.Stringifier()
-stdout.pipe(process.stdout)
-var stdin = process.stdin.pipe(json.Parser())
-
 var timeout
 var options
 var window
 
-stdin.once('data', main)
-stdout.write('starting')
+process.once('message', main)
+process.send('starting')
 
 function main (opts) {
   options = opts
   resetTimeout()
 
-  stdin.on('data', function (message) {
-    resetTimeout()
-    if (typeof message !== 'object') return
-    if (message.opts.mainProcess) {
-      var res
-      var err
-      try {
-        res = eval(message.code)
-      } catch (e) {
-        err = e.stack
-      }
-      stdout.write([ message.id, { res: res, err: err } ])
-    } else {
-      window.webContents.send('data', message)
-    }
-  })
-
   ipc.on('data', function (e, data) {
-    stdout.write(data)
+    process.send(data)
   })
 
-  app.on('ready', function () {
-    window = new BrowserWindow(opts.windowOpts)
-    window.loadURL('file://' + path.join(__dirname, 'index.html'))
-    window.webContents.on('did-finish-load', function () {
-      stdout.write('ready')
-    })
+  if (app.isReady()) createWindow()
+  else app.once('ready', createWindow)
+}
+
+function createWindow () {
+  window = new BrowserWindow(options.windowOpts)
+  window.loadURL('file://' + path.join(__dirname, 'index.html'))
+  window.webContents.on('did-finish-load', function () {
+    process.on('message', onMessage)
+    process.send('ready')
   })
+}
+
+function onMessage (message) {
+  resetTimeout()
+  if (typeof message !== 'object') return
+  if (message.opts.mainProcess) {
+    var res
+    var err
+    try {
+      res = eval(message.code)
+    } catch (e) {
+      err = e.stack
+    }
+    process.send([ message.id, { res: res, err: err } ])
+  } else {
+    window.webContents.send('data', message)
+  }
 }
 
 function resetTimeout () {
