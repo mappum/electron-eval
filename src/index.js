@@ -12,13 +12,13 @@ module.exports = function (opts) {
   return new Daemon(opts)
 }
 
-var daemonMain = path.join(__dirname, '..', 'app', 'daemon.js')
 var i = 0
 
 class Daemon extends EventEmitter {
   constructor (opts) {
     super()
     opts = opts || {}
+    this.daemonMain = opts.daemonMain || path.join(__dirname, '..', 'app', 'daemon.js')
     opts.timeout = typeof opts.timeout === 'number'
       ? opts.timeout : 10e3
     opts.windowOpts = opts.windowOpts || { show: false, skipTaskbar: true }
@@ -107,7 +107,7 @@ class Daemon extends EventEmitter {
     var env = {}
     var exitStderr = ''
     if (this.xDisplay) env.DISPLAY = this.xDisplay
-    this.child = spawn(opts.electron || electron, [ daemonMain ], { env, stdio: ['ipc'] })
+    this.child = spawn(opts.electron || electron, [ this.daemonMain ], { env, stdio: ['ipc'] })
     this.child.on('close', (code) => {
       if (this.closing) return
       var err = `electron-eval error: Electron process exited with code ${code}`
