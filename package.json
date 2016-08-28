@@ -21,8 +21,8 @@
   "author": "Matt Bell <mappum@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "electron-prebuilt": "^1.2.2",
-    "newline-json": "^0.1.1"
+    "cross-spawn": "^4.0.0",
+    "electron-prebuilt": "^1.2.2"
   },
   "devDependencies": {
     "babel-cli": "^6.7.7",

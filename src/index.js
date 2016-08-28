@@ -1,10 +1,9 @@
 'use strict'
 
 var electron = require('electron-prebuilt')
-var spawn = require('child_process').spawn
-var json = require('newline-json')
+var spawn = require('cross-spawn')
 var path = require('path')
-var EventEmitter = require('events').EventEmitter
+var EventEmitter = require('events')
 
 var headless
 try { headless = require('headless') } catch (err) {}
@@ -13,13 +12,13 @@ module.exports = function (opts) {
   return new Daemon(opts)
 }
 
-var daemonMain = path.join(__dirname, '..', 'app', 'daemon.js')
 var i = 0
 
 class Daemon extends EventEmitter {
   constructor (opts) {
     super()
     opts = opts || {}
+    this.daemonMain = opts.daemonMain || path.join(__dirname, '..', 'app', 'daemon.js')
     opts.timeout = typeof opts.timeout === 'number'
       ? opts.timeout : 10e3
     opts.windowOpts = opts.windowOpts || { show: false, skipTaskbar: true }
@@ -63,12 +62,12 @@ class Daemon extends EventEmitter {
       if (err) this.emit('error', err)
     })
     if (!this.ready) return this.queue.push([ code, opts, cb ])
-    this.stdin.write({ id, opts, code })
+    this.child.send({ id, opts, code })
   }
 
   keepalive () {
     if (!this.stdin) return
-    this.stdin.write(0)
+    this.child.send(0)
   }
 
   close (signal) {
@@ -108,7 +107,7 @@ class Daemon extends EventEmitter {
     var env = {}
     var exitStderr = ''
     if (this.xDisplay) env.DISPLAY = this.xDisplay
-    this.child = spawn(opts.electron || electron, [ daemonMain ], { env })
+    this.child = spawn(opts.electron || electron, [ this.daemonMain ], { env, stdio: ['ipc'] })
     this.child.on('close', (code) => {
       if (this.closing) return
       var err = `electron-eval error: Electron process exited with code ${code}`
@@ -120,28 +119,13 @@ class Daemon extends EventEmitter {
       exitStderr += `${data.toString()}${exitStderr ? '\n' : ''}`
     })
 
-    this.child.stdout.once('data', (data) => {
-      // this hack fixes issues where some environments (namely Windows)
-      // prepend a '\n' at the beginning of the stdout stream. This breaks
-      // the JSON parser, so if the stream starts with '\n' we skip it
-      if (data[0] === '\n'.charCodeAt(0)) {
-        data = data.slice(1)
-      }
-      this.stdout.write(data)
-      this.child.stdout.pipe(this.stdout)
-    })
-    this.stdout = json.Parser()
-    this.stdout.on('error', (err) => this.emit('error', err))
-    this.stdin = json.Stringifier()
-    this.stdin.on('error', (err) => this.emit('error', err))
-    this.stdin.pipe(this.child.stdin)
     process.on('exit', () => this.child.kill())
 
-    this.stdout.once('data', (data) => {
+    this.child.once('message', (data) => {
       this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
-      this.stdin.write(opts)
-      this.stdout.once('data', () => {
-        this.stdout.on('data', (message) => this.emit(message[0], message[1]))
+      this.child.send(opts)
+      this.child.once('message', (data) => {
+        this.child.on('message', (message) => this.emit(message[0], message[1]))
         this.ready = true
         this.queue.forEach((item) => this.eval(...item))
         this.queue = null

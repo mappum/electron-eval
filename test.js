@@ -10,7 +10,7 @@ test('catch errors', (t) => {
 })
 
 test('catch child process crashing', (t) => {
-  var crashDaemon = electronEval({ electron: './crash.sh', timeout: 5000, headless: false })
+  var crashDaemon = electronEval({ electron: process.execPath, daemonMain: './crash.js', timeout: 5000, headless: false })
   crashDaemon.on('error', (err) => {
     t.same(err.message, 'electron-eval error: Electron process exited with code 1.\nStderr:\nFlagrant error\n')
     t.end()
