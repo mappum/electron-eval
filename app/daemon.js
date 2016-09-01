@@ -2,12 +2,28 @@ var app = require('electron').app
 var BrowserWindow = require('electron').BrowserWindow
 var path = require('path')
 var ipc = require('electron').ipcMain
+var json = require('ndjson')
 
 if (app.dock) app.dock.hide()
 
 var timeout
 var options
 var window
+
+if (typeof process.send !== 'function') {
+  var stdin = json.parse()
+  process.stdin.pipe(stdin)
+
+  var stdout = json.serialize()
+  stdout.pipe(process.stdout)
+
+  process.send = function (data) {
+    stdout.write(data)
+  }
+  stdin.on('data', function (data) {
+    process.emit('message', data)
+  })
+}
 
 process.once('message', main)
 process.send('starting')
@@ -52,5 +68,5 @@ function onMessage (message) {
 
 function resetTimeout () {
   if (timeout) clearTimeout(timeout)
-  timeout = setTimeout(function () { process.exit(0) }, options.timeout)
+  timeout = setTimeout(function () { process.exit(2) }, options.timeout)
 }

@@ -4,6 +4,7 @@ var electron = require('electron-prebuilt')
 var spawn = require('cross-spawn')
 var path = require('path')
 var EventEmitter = require('events')
+var json = require('ndjson')
 
 var headless
 try { headless = require('headless') } catch (err) {}
@@ -18,14 +19,17 @@ class Daemon extends EventEmitter {
   constructor (opts) {
     super()
     opts = opts || {}
-    this.daemonMain = opts.daemonMain || path.join(__dirname, '..', 'app', 'daemon.js')
+    opts.daemonMain = opts.daemonMain || path.join(__dirname, '..', 'app', 'daemon.js')
     opts.timeout = typeof opts.timeout === 'number'
       ? opts.timeout : 10e3
     opts.windowOpts = opts.windowOpts || { show: false, skipTaskbar: true }
     opts.headless = opts.headless != null
-      ? opts.headless : process.env.HEADLESS
+      ? opts.headless : null
     if (opts.headless == null && process.platform === 'linux') {
       opts.headless = true
+    }
+    if (opts.nodeIPC == null && process.platform !== 'linux') {
+      opts.nodeIPC = true
     }
 
     this.queue = []
@@ -106,7 +110,9 @@ class Daemon extends EventEmitter {
     var env = {}
     var exitStderr = ''
     if (this.xDisplay) env.DISPLAY = this.xDisplay
-    this.child = spawn(opts.electron || electron, [ this.daemonMain ], { env, stdio: ['ipc'] })
+    var electronOpts = { env }
+    if (opts.nodeIPC) electronOpts.stdio = [ 'ipc' ]
+    this.child = spawn(opts.electron || electron, [ opts.daemonMain ], electronOpts)
     this.child.on('close', (code) => {
       if (this.closing) return
       var err = `electron-eval error: Electron process exited with code ${code}`
@@ -119,6 +125,8 @@ class Daemon extends EventEmitter {
     })
 
     process.on('exit', () => this.child.kill())
+
+    if (!opts.nodeIPC) this._startIPC()
 
     this.child.once('message', (data) => {
       this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
@@ -133,5 +141,18 @@ class Daemon extends EventEmitter {
         this.keepalive()
       })
     })
+  }
+
+  _startIPC () {
+    var stdin = json.serialize()
+    stdin.on('error', (err) => this.emit('error', err))
+    stdin.pipe(this.child.stdin)
+
+    var stdout = json.parse()
+    stdout.on('error', (err) => this.emit('error', err))
+    this.child.stdout.pipe(stdout)
+
+    this.child.send = (data) => stdin.write(data)
+    stdout.on('data', (data) => this.child.emit('message', data))
   }
 }
