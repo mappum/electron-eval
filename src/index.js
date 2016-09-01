@@ -38,7 +38,7 @@ class Daemon extends EventEmitter {
 
     if (opts.headless) {
       this._startHeadless((err) => {
-        if (err) return this.emit('error', err)
+        if (err) return this.error(err)
         this._startElectron(opts)
       })
     } else {
@@ -73,13 +73,18 @@ class Daemon extends EventEmitter {
     this.child.send(0)
   }
 
+  error (err) {
+    this.emit('error', err)
+    this.close()
+  }
+
   close (signal) {
+    if (this.closing) return
     this.closing = true
     if (this.xvfb) {
       process.kill(this.xvfb.pid, 'SIGKILL')
     }
     this.child.kill(signal)
-    this.stdout = this.stdin = null
     this.eval = (code, cb) => cb && cb(new Error('Daemon already closed'))
     clearInterval(this.keepaliveInterval)
   }
@@ -117,9 +122,9 @@ class Daemon extends EventEmitter {
       if (this.closing) return
       var err = `electron-eval error: Electron process exited with code ${code}`
       if (exitStderr) err += `.\nStderr:\n${exitStderr}`
-      this.emit('error', new Error(err))
+      this.error(new Error(err))
     })
-    this.child.on('error', (err) => this.emit('error', err))
+    this.child.on('error', (err) => this.error(err))
     this.child.stderr.on('data', (data) => {
       exitStderr += `${data.toString()}${exitStderr ? '\n' : ''}`
     })
@@ -145,11 +150,11 @@ class Daemon extends EventEmitter {
 
   _startIPC () {
     var stdin = json.serialize()
-    stdin.on('error', (err) => this.emit('error', err))
+    stdin.on('error', (err) => this.error(err))
     stdin.pipe(this.child.stdin)
 
     var stdout = json.parse()
-    stdout.on('error', (err) => this.emit('error', err))
+    stdout.on('error', (err) => this.error(err))
     this.child.stdout.pipe(stdout)
 
     this.child.send = (data) => stdin.write(data)
