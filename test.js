@@ -19,7 +19,7 @@ test('catch child process crashing', (t) => {
 
 var daemon
 test('create daemon', (t) => {
-  daemon = electronEval({ timeout: 5000 })
+  daemon = electronEval({ timeout: 2000 })
   daemon.on('ready', () => {
     t.pass('daemon is ready')
     t.end()
@@ -170,7 +170,7 @@ test('timeout triggered when no keepalive', (t) => {
   t.test('wait for timeout', (t) => {
     daemon.once('error', (err) => {
       t.ok(err, 'got error')
-      t.equal(err.message, 'electron-eval error: Electron process exited with code 0',
+      t.ok(err.message.startsWith('electron-eval error: Electron process exited with code 2'),
         'correct error message')
       t.end()
     })
