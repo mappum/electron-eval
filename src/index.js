@@ -66,7 +66,6 @@ class Daemon extends EventEmitter {
   }
 
   keepalive () {
-    if (!this.stdin) return
     this.child.send(0)
   }
 
