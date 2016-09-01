@@ -122,6 +122,7 @@ class Daemon extends EventEmitter {
 
     this.child.once('message', (data) => {
       this.keepaliveInterval = setInterval(this.keepalive.bind(this), opts.timeout / 2)
+      this.keepaliveInterval.unref()
       this.child.send(opts)
       this.child.once('message', (data) => {
         this.child.on('message', (message) => this.emit(message[0], message[1]))
