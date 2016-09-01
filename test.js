@@ -130,6 +130,54 @@ test('close daemon', (t) => {
   daemon.close()
 })
 
+test('timeout is not triggered', (t) => {
+  var daemon
+  t.test('create daemon', (t) => {
+    daemon = electronEval({ timeout: 2000 })
+    daemon.on('ready', () => {
+      t.pass('daemon is ready')
+      t.end()
+    })
+    daemon.on('error', t.error)
+  })
+  t.test('wait for timeout', (t) => {
+    setTimeout(() => {
+      t.pass('daemon did not close')
+      t.end()
+    }, 3000)
+  })
+  t.test('close daemon', (t) => {
+    daemon.child.once('exit', () => {
+      t.pass('daemon process exited')
+      t.end()
+    })
+    daemon.close()
+  })
+  t.end()
+})
+
+test('timeout triggered when no keepalive', (t) => {
+  var daemon
+  t.test('create daemon', (t) => {
+    daemon = electronEval({ timeout: 2000 })
+    daemon.on('ready', () => {
+      t.pass('daemon is ready')
+      t.end()
+    })
+    // prevent keepalives from being sent
+    daemon.keepalive = () => {}
+  })
+  t.test('wait for timeout', (t) => {
+    daemon.once('error', (err) => {
+      t.ok(err, 'got error')
+      t.equal(err.message, 'electron-eval error: Electron process exited with code 0',
+        'correct error message')
+      t.end()
+    })
+  })
+  t.end()
+})
+
 if (process.env.HEADLESS) {
   test('xvfb has started and shutdown', (t) => {
     daemon = electronEval()
