@@ -84,7 +84,9 @@ class Daemon extends EventEmitter {
     if (this.xvfb) {
       process.kill(this.xvfb.pid, 'SIGKILL')
     }
-    this.child.kill(signal)
+    if (this.child) {
+      this.child.kill(signal)
+    }
     this.eval = (code, cb) => cb && cb(new Error('Daemon already closed'))
     clearInterval(this.keepaliveInterval)
   }
