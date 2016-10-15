@@ -1,6 +1,6 @@
 'use strict'
 
-var electron = require('electron-prebuilt')
+var electron = require('electron')
 var spawn = require('cross-spawn')
 var path = require('path')
 var EventEmitter = require('events')
