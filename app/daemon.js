@@ -47,6 +47,10 @@ function createWindow () {
     process.on('message', onMessage)
     process.send('ready')
   })
+  window.once('close', function () {
+    process.removeListener('message', onMessage)
+    window = null
+  })
 }
 
 function onMessage (message) {
@@ -62,7 +66,7 @@ function onMessage (message) {
     }
     process.send([ message.id, { res: res, err: err } ])
   } else {
-    window.webContents.send('data', message)
+    if (window) window.webContents.send('data', message)
   }
 }
 
