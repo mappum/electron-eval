@@ -92,7 +92,11 @@ class Daemon extends EventEmitter {
         cb = opts
         opts = {}
       }
-      cb(new Error('Daemon already closed'))
+      var error = new Error('Daemon already closed')
+      if (cb) {
+        return cb(error)
+      }
+      this.emit('error', error)
     }
     clearInterval(this.keepaliveInterval)
   }
