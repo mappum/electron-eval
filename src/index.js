@@ -105,7 +105,10 @@ class Daemon extends EventEmitter {
     if (headless == null) {
       return cb(new Error('Could not load "headless" module'))
     }
-    var opts = { display: { width: 1024, height: 768, depth: 24 } }
+    var opts = {
+      display: { width: 1024, height: 768, depth: 24 },
+      args: [ '-nolisten', 'tcp' ]
+    }
     headless(opts, (err, child, display) => {
       if (err) {
         var err2 = new Error(`Could not start Xvfb: "${err.message}". \n` +
