@@ -21,7 +21,7 @@
   "author": "Matt Bell <mappum@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "cross-spawn": "^4.0.0",
+    "cross-spawn": "^5.1.0",
     "electron": "^1.4.3",
     "ndjson": "^1.4.3"
   },
