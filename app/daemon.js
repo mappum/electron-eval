@@ -60,7 +60,7 @@ function onMessage (message) {
     var res
     var err
     try {
-      res = eval(message.code)
+      res = eval(message.code) // eslint-disable-line
     } catch (e) {
       err = e.stack
     }
