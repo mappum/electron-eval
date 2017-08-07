@@ -32,7 +32,7 @@
     "tap": "^10.7.0"
   },
   "optionalDependencies": {
-    "headless": "https://github.com/paulkernfeld/node-headless/tarball/master"
+    "headless": "^1.1.0"
   },
   "repository": {
     "type": "git",
